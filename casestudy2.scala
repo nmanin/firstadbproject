@@ -5,7 +5,7 @@
 // COMMAND ----------
 
 val defaultMoviesUrl = "https://manatarblob.blob.core.windows.net/data/movies.csv"
-val defaultRatingsUrl = "adl://manataradls.azuredatalakestore.net/data/ratings.csv"
+val defaultRatingsUrl = "adl://manatardls.azuredatalakestore.net/data/ratings.csv"
  
 val moviesUrl = dbutils.widgets.text("moviesUrl","")
 val ratingsUrl = dbutils.widgets.text("ratingsUrl", "")
@@ -74,11 +74,10 @@ spark.conf.set("dfs.adls.oauth2.refresh.url", "https://login.microsoftonline.com
 
 spark.sparkContext.hadoopConfiguration.set("dfs.adls.oauth2.access.token.provider.type", spark.conf.get("dfs.adls.oauth2.access.token.provider.type"))
 spark.sparkContext.hadoopConfiguration.set("dfs.adls.oauth2.client.id", spark.conf.get("dfs.adls.oauth2.client.id"))
+
 spark.sparkContext.hadoopConfiguration.set("dfs.adls.oauth2.credential", spark.conf.get("dfs.adls.oauth2.credential"))
+
 spark.sparkContext.hadoopConfiguration.set("dfs.adls.oauth2.refresh.url", spark.conf.get("dfs.adls.oauth2.refresh.url"))
-
-
-// COMMAND ----------
 
 val ratingsData = sc.textFile(inputRatingsUrl)
 val originalData = ratingsData.mapPartitionsWithIndex((index, iterator) => {
@@ -94,7 +93,3 @@ val reducedData = mappedData.reduceByKey((x, y) => (x + y))
 val result = reducedData.sortBy(_._2).collect
 val finalOutput = result.reverse.take(10)
 val mappedFinalOuptut = finalOutput.map(record => (broadcastedMovies.value()(record._1), record._2))
-
-// COMMAND ----------
-
-mappedFinalOutput.foreach(Println)
