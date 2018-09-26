@@ -1,0 +1,29 @@
+// Databricks notebook source
+// MAGIC %md
+// MAGIC # Testing Spark SQL
+
+// COMMAND ----------
+
+import org.apache.spark.sql._
+import org.apache.spark.sql.types._
+
+val fileName = "wasbs://data@manatarblob.blob.core.windows.net/customer-orders.csv"
+
+val schema = StructType(
+       Array(
+       StructField("customerId",IntegerType,true),
+       StructField("lineItemId",IntegerType,true),
+       StructField("billValue",FloatType,true)
+       )
+       )
+
+      val data = spark.read.option("inferSchema",false).option("header","false").
+      option("sep",",").
+      schema(schema).
+      csv(fileName)
+
+data.printSchema
+
+data.createOrReplaceTempView("customerorders")
+val result = spark.sql("select customerId , round(sum(billValue),2) as cust_business from customerorders group by customerId order by sum(billValue) desc limit 10")
+display(result)
